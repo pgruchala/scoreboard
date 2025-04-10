@@ -4,6 +4,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Head from "next/head";
 import Ludzik from "./components/Ludzik";
+
 export default function Home() {
   const [scores, setScores] = useState([]);
   const [median, setMedian] = useState(0);
@@ -20,15 +21,30 @@ export default function Home() {
       .required("Wynik jest wymagany"),
   });
 
+  // Load scores from localStorage when component mounts
+  useEffect(() => {
+    const savedScores = localStorage.getItem('scoreboardData');
+    if (savedScores) {
+      setScores(JSON.parse(savedScores));
+    }
+  }, []);
+
+  // Calculate statistics whenever scores change and save to localStorage
   useEffect(() => {
     if (scores.length > 0) {
       setMedian(
         scores.reduce((sum, curr) => sum + curr.score, 0) / scores.length
       );
       setHighestScore(Math.max(...scores.map((s) => s.score)));
+      
+      // Save to localStorage whenever scores change
+      localStorage.setItem('scoreboardData', JSON.stringify(scores));
     } else {
       setMedian(0);
       setHighestScore(0);
+      
+      // Clear localStorage if there are no scores
+      localStorage.removeItem('scoreboardData');
     }
   }, [scores]);
 
@@ -41,6 +57,14 @@ export default function Home() {
 
     setScores([...scores, newScore]);
     resetForm();
+  };
+
+  // Function to clear all scores
+  const clearAllScores = () => {
+    if (window.confirm('Czy na pewno chcesz usunąć wszystkie wyniki?')) {
+      setScores([]);
+      localStorage.removeItem('scoreboardData');
+    }
   };
 
   return (
@@ -68,7 +92,7 @@ export default function Home() {
             <div className="stats shadow bg-base-100">
               <div className="stat">
                 <div className="stat-title">Średni wynik</div>
-                <div className="stat-value text-secondary">{median}</div>
+                <div className="stat-value text-secondary">{median.toFixed(1)}</div>
               </div>
             </div>
 
@@ -147,7 +171,17 @@ export default function Home() {
 
             <div className="card bg-base-100 shadow-xl md:col-span-2">
               <div className="card-body">
-                <h2 className="card-title">Najlepsze wyniki</h2>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="card-title">Najlepsze wyniki</h2>
+                  {scores.length > 0 && (
+                    <button 
+                      onClick={clearAllScores}
+                      className="btn btn-sm btn-error"
+                    >
+                      Wyczyść wszystko
+                    </button>
+                  )}
+                </div>
 
                 {scores.length > 0 ? (
                   <div className="overflow-x-auto">
