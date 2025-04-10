@@ -21,7 +21,6 @@ export default function Home() {
       .required("Wynik jest wymagany"),
   });
 
-  // Load scores from localStorage when component mounts
   useEffect(() => {
     const savedScores = localStorage.getItem('scoreboardData');
     if (savedScores) {
@@ -29,7 +28,6 @@ export default function Home() {
     }
   }, []);
 
-  // Calculate statistics whenever scores change and save to localStorage
   useEffect(() => {
     if (scores.length > 0) {
       setMedian(
@@ -37,13 +35,11 @@ export default function Home() {
       );
       setHighestScore(Math.max(...scores.map((s) => s.score)));
       
-      // Save to localStorage whenever scores change
       localStorage.setItem('scoreboardData', JSON.stringify(scores));
     } else {
       setMedian(0);
       setHighestScore(0);
       
-      // Clear localStorage if there are no scores
       localStorage.removeItem('scoreboardData');
     }
   }, [scores]);
@@ -59,7 +55,6 @@ export default function Home() {
     resetForm();
   };
 
-  // Function to clear all scores
   const clearAllScores = () => {
     if (window.confirm('Czy na pewno chcesz usunąć wszystkie wyniki?')) {
       setScores([]);
